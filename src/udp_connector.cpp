@@ -42,6 +42,27 @@ UDP::~UDP() {
 }
 
 /**
+ * Sends the given data to the specified destination address and port.
+ * 
+ * @param data The data to be sent.
+ * @param destinationAddress The destination IP address.
+ * @param destinationPort The destination port number.
+ * 
+ * If the send operation fails, the function outputs an error message.
+ */
+void UDP::sendData(const std::string& data, const std::string& destinationAddress, int destinationPort) {
+    struct sockaddr_in destinationAddress_;
+    destinationAddress_.sin_family = AF_INET;
+    destinationAddress_.sin_port = htons(destinationPort);
+    inet_pton(AF_INET, destinationAddress.c_str(), &destinationAddress_.sin_addr);
+
+    int bytesSent = sendto(sockfd_, data.c_str(), data.length(), 0, (struct sockaddr*)&destinationAddress_, sizeof(destinationAddress_));
+    if (bytesSent < 0) {
+        std::cerr << "Error sending data" << std::endl;
+    }
+}
+
+/**
  * Receives data from the UDP socket.
  *
  * This function blocks until data is received. It uses the recvfrom system call
