@@ -13,6 +13,8 @@ public:
     ~UDP();
 
     void receiveData(std::string& data);
+    void sendData(const std::string& data, const std::string& destinationAddress, int destinationPort);
+
 
     int getPort();
     std::string getAddress();

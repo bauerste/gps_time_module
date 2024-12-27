@@ -11,6 +11,7 @@ TEST(UDPSuite, Constructor) {
 // Verifies that receiveData successfully receives data from the UDP socket.
 TEST(UDPSuite, ReceiveData) {
     UDP udp(10110, "127.0.0.1");
+    udp.sendData("Hello", "127.0.0.1", 10110);
     std::string data;
     udp.receiveData(data);
     EXPECT_FALSE(data.empty()); // Assuming some data is received
