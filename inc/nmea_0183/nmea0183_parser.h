@@ -7,6 +7,7 @@ struct UTCTime
     int minutes;
     int seconds;
     int paddedFractionalSeconds;
+    bool valid;
 };
 
 struct UTCDate
@@ -14,6 +15,7 @@ struct UTCDate
     int day;
     int month;
     int year;
+    bool valid;
 };
 
 

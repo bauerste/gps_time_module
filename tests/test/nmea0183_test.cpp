@@ -19,7 +19,7 @@ TEST(NMEAParseMessageTest, InvalidGPZDA) {
   std::string message = "$GPZDB,123519,12,03,2023,00,00*6A";
   parser.parseMessage(message);
   // Verify no output
-  std::string expectedOutput = "";
+  std::string expectedOutput = "Error: Invalid NMEA message format: Expected $GPZDA, received $GPZDB\n";
   std::stringstream actualOutput;
   std::cout.rdbuf(actualOutput.rdbuf());
   parser.parseMessage(message);
@@ -46,6 +46,58 @@ TEST(NMEAParseMessageTest, MalformedMessageLessFields) {
   parser.parseMessage(message);
   // Verify no output
   std::string expectedOutput = "Error: Invalid NMEA message format: Expected 8 fields, received 5\n";
+  std::stringstream actualOutput;
+  std::cout.rdbuf(actualOutput.rdbuf());
+  parser.parseMessage(message);
+  std::cout.rdbuf(nullptr);
+  EXPECT_EQ(expectedOutput, actualOutput.str());
+}
+
+TEST(NMEAParseMessageTest, MalformedMessageWrongTimeFieldLength) {
+  NMEA0183Parser parser;
+  std::string message = "$GPZDA,1235319.000,12,03,2023,00,00*6A";
+  parser.parseMessage(message);
+  // Verify no output
+  std::string expectedOutput = "UTC Date: 12-03-2023\nError: Invalid UTC time format\n";
+  std::stringstream actualOutput;
+  std::cout.rdbuf(actualOutput.rdbuf());
+  parser.parseMessage(message);
+  std::cout.rdbuf(nullptr);
+  EXPECT_EQ(expectedOutput, actualOutput.str());
+}
+
+TEST(NMEAParseMessageTest, MalformedMessageWrongDayFieldLength) {
+  NMEA0183Parser parser;
+  std::string message = "$GPZDA,123319.000,123,03,2023,00,00*6A";
+  parser.parseMessage(message);
+  // Verify no output
+  std::string expectedOutput = "Error: Invalid UTC date day format\n";
+  std::stringstream actualOutput;
+  std::cout.rdbuf(actualOutput.rdbuf());
+  parser.parseMessage(message);
+  std::cout.rdbuf(nullptr);
+  EXPECT_EQ(expectedOutput, actualOutput.str());
+}
+
+TEST(NMEAParseMessageTest, MalformedMessageWrongMonthFieldLength) {
+  NMEA0183Parser parser;
+  std::string message = "$GPZDA,135319.000,12,033,2023,00,00*6A";
+  parser.parseMessage(message);
+  // Verify no output
+  std::string expectedOutput = "Error: Invalid UTC date month format\n";
+  std::stringstream actualOutput;
+  std::cout.rdbuf(actualOutput.rdbuf());
+  parser.parseMessage(message);
+  std::cout.rdbuf(nullptr);
+  EXPECT_EQ(expectedOutput, actualOutput.str());
+}
+
+TEST(NMEAParseMessageTest, MalformedMessageWrongYearFieldLength) {
+  NMEA0183Parser parser;
+  std::string message = "$GPZDA,123319.000,12,03,20323,00,00*6A";
+  parser.parseMessage(message);
+  // Verify no output
+  std::string expectedOutput = "Error: Invalid UTC date year format\n";
   std::stringstream actualOutput;
   std::cout.rdbuf(actualOutput.rdbuf());
   parser.parseMessage(message);

@@ -39,6 +39,7 @@ void NMEA0183Parser::parseMessage(const std::string &message) {
     }
     else    
     {
+        std::cout << "Error: Invalid NMEA message format: Expected $GPZDA, received " << NMEAFields[0] << std::endl;
         return;
     }
     
@@ -47,37 +48,77 @@ void NMEA0183Parser::parseMessage(const std::string &message) {
 void NMEA0183Parser::parseGPZDA(std::vector<std::string> fields) {
 
     UTCDate date = parseUTCDate({fields[2], fields[3], fields[4]});
+    if (!date.valid)
+    {
+        return;
+    }
+    
 
     std::cout << "UTC Date: ";
     std::cout  << std::setfill('0') << std::setw(2) << date.day << "-" << std::setfill('0') << std::setw(2)  << date.month << "-" << std::setfill('0') << std::setw(4) << date.year << std::endl;
 
     UTCTime time = parseUTCTime(fields[1]);
+    if(!time.valid) return;
 
     std::cout << "UTC Time: ";
     std::cout << std::setfill('0') << std::setw(2) << time.hours << ":" << std::setfill('0') << std::setw(2) << time.minutes;
     std::cout << ":" << std::setfill('0') << std::setw(2)  << time.seconds << "." << std::setfill('0') << std::setw(3) << time.paddedFractionalSeconds << std::endl;
 
-    //std::cout << fields[1] << std::endl;
-    //std::cout << fields[1].length() << std::endl;
-
 }
 
-UTCTime NMEA0183Parser::parseUTCTime(const std::string &utcTime) 
-{
+UTCTime NMEA0183Parser::parseUTCTime(const std::string &utcTimeField) 
+{   
     UTCTime utctime;
-    utctime.hours = std::stoi(utcTime.substr(0, 2));
-    utctime.minutes = std::stoi(utcTime.substr(2, 2));
-    utctime.seconds = std::stoi(utcTime.substr(4, 2));
-    utctime.paddedFractionalSeconds = std::stoi(utcTime.substr(8, 3));
-    return utctime;
+    if (utcTimeField.length() == 10 || utcTimeField.length() == 6)
+    {
+        utctime.hours = std::stoi(utcTimeField.substr(0, 2));
+        utctime.minutes = std::stoi(utcTimeField.substr(2, 2));
+        utctime.seconds = std::stoi(utcTimeField.substr(4, 2));
+        utctime.paddedFractionalSeconds = std::stoi(utcTimeField.substr(8, 3));
+        utctime.valid = true;
+        return utctime;
+    } else
+    {
+        std::cout << "Error: Invalid UTC time format" << std::endl;
+        utctime.valid = false;
+        return utctime;
+    }
+    
+    
+    
 }
 
 UTCDate NMEA0183Parser::parseUTCDate(const std::vector<std::string> &utcDate)
 {
     UTCDate utcdate;
-    utcdate.day = std::stoi(utcDate[0]);
-    utcdate.month = std::stoi(utcDate[1]);
-    utcdate.year = std::stoi(utcDate[2]);
+    if (utcDate[0].length() != 2)
+    {
+        std::cout << "Error: Invalid UTC date day format" << std::endl;
+        utcdate.valid = false;
+        return utcdate;
+    } else
+    {
+        utcdate.day = std::stoi(utcDate[0]);    
+    }
+    if (utcDate[1].length() != 2)
+    {
+        std::cout << "Error: Invalid UTC date month format" << std::endl;
+        utcdate.valid = false;
+        return utcdate;
+    } else
+    {
+        utcdate.month = std::stoi(utcDate[1]);
+    }
+    if (utcDate[2].length() != 4)
+    {
+        std::cout << "Error: Invalid UTC date year format" << std::endl;
+        utcdate.valid = false;
+        return utcdate; 
+    } else
+    {
+        utcdate.year = std::stoi(utcDate[2]);
+    }
+    utcdate.valid = true;
     return utcdate;
 }
 
