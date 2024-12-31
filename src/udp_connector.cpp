@@ -11,8 +11,8 @@
  * If the socket creation or binding fails, the constructor outputs an error message and exits the program.
  */
 UDP::UDP(int port, const std::string& address) {
-    sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd_ < 0) {
+    m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (m_sockfd < 0) {
         std::cerr << "Error creating socket" << std::endl;
         exit(1);
     }
@@ -22,13 +22,13 @@ UDP::UDP(int port, const std::string& address) {
     serverAddress.sin_port = htons(port);
     inet_pton(AF_INET, address.c_str(), &serverAddress.sin_addr);
 
-    if (bind(sockfd_, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
+    if (bind(m_sockfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
         std::cerr << "Error binding socket" << std::endl;
         exit(1);
     }
-    port_ = port;
-    address_ = address;
-    isConnected_ = true;
+    m_port = port;
+    m_address = address;
+    m_isConnected = true;
 }
                                                                                                                                                                
 /**
@@ -38,7 +38,7 @@ UDP::UDP(int port, const std::string& address) {
  */
 UDP::~UDP() {
     close();
-    isConnected_ = false;
+    m_isConnected = false;
 }
 
 /**
@@ -56,7 +56,7 @@ void UDP::sendData(const std::string& data, const std::string& destinationAddres
     destinationAddress_.sin_port = htons(destinationPort);
     inet_pton(AF_INET, destinationAddress.c_str(), &destinationAddress_.sin_addr);
 
-    int bytesSent = sendto(sockfd_, data.c_str(), data.length(), 0, (struct sockaddr*)&destinationAddress_, sizeof(destinationAddress_));
+    int bytesSent = sendto(m_sockfd, data.c_str(), data.length(), 0, (struct sockaddr*)&destinationAddress_, sizeof(destinationAddress_));
     if (bytesSent < 0) {
         std::cerr << "Error sending data" << std::endl;
     }
@@ -75,7 +75,7 @@ void UDP::sendData(const std::string& data, const std::string& destinationAddres
  * standard error output, and the function returns without modifying the data.
  */
 void UDP::receiveData(std::string& data) {
-    if (!isConnected_) {
+    if (!m_isConnected) {
         reconnect();
     }
 
@@ -84,14 +84,14 @@ void UDP::receiveData(std::string& data) {
     struct timeval tv;
     tv.tv_sec = 1000 / 1000;
     tv.tv_usec = (1000 % 1000) * 1000;
-    setsockopt(sockfd_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
     char buffer[1024];
     socklen_t serverLength = sizeof(struct sockaddr_in);
-    int bytesReceived = recvfrom(sockfd_, buffer, 1024, 0, (struct sockaddr*)NULL, &serverLength);
+    int bytesReceived = recvfrom(m_sockfd, buffer, 1024, 0, (struct sockaddr*)NULL, &serverLength);
     if (bytesReceived < 0) {
         std::cerr << "Error receiving data" << std::endl;
-        isConnected_ = false;
+        m_isConnected = false;
         return;
     }
 
@@ -107,40 +107,40 @@ void UDP::receiveData(std::string& data) {
  */
 void UDP::reconnect() {
     close();
-    sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd_ < 0) {
+    m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (m_sockfd < 0) {
         std::cerr << "Error creating socket" << std::endl;
         exit(1);
     }
 
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(port_);
-    inet_pton(AF_INET, address_.c_str(), &serverAddress.sin_addr);
+    serverAddress.sin_port = htons(m_port);
+    inet_pton(AF_INET, m_address.c_str(), &serverAddress.sin_addr);
 
-    if (bind(sockfd_, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
+    if (bind(m_sockfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
         std::cerr << "Error binding socket" << std::endl;
         exit(1);
     }
 
-    isConnected_ = true;
+    m_isConnected = true;
 }
 
 int UDP::getPort() {
-    return port_;
+    return m_port;
 }
 
 std::string UDP::getAddress() {
-    return address_;
+    return m_address;
 }
 
 void UDP::close() {
-    if (sockfd_ != -1) {
-        ::close(sockfd_);
-        sockfd_ = -1;
+    if (m_sockfd != -1) {
+        ::close(m_sockfd);
+        m_sockfd = -1;
     }
 }
 
 bool UDP::isConnected() {
-    return isConnected_;
+    return m_isConnected;
 }

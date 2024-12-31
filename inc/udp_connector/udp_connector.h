@@ -23,10 +23,10 @@ public:
     void close();
     void reconnect();
 private:
-    int sockfd_;
-    bool isConnected_;
-    std::string address_;
-    int port_;
+    int m_sockfd;
+    bool m_isConnected;
+    std::string m_address;
+    int m_port;
 };
 
 #endif  // UDP_H

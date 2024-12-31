@@ -6,11 +6,11 @@
 
 
 int main() {
-    UDP udp(10110, "127.0.0.1");
+    std::unique_ptr<UDP> udpNMEA1083 = std::make_unique<UDP>(10110, "127.0.0.1");
     int count = 0;
     while (count < 100000) {
         std::string data;
-        udp.receiveData(data);
+        udpNMEA1083->receiveData(data);
         std::unique_ptr<NMEA0183Parser> parser = std::make_unique<NMEA0183Parser>();
         parser->parseMessage(data);
         count += 1;
